@@ -1,0 +1,273 @@
+
+class ChatView extends HTMLElement {
+    /**
+     * Constructor: attaches a Shadow DOM to encapsulate styles and markup.
+     */
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
+    /**
+     * Called when the element is added to the DOM.
+     * Sets up the Shadow DOM structure, styles, and initial event listeners.
+     */
+    connectedCallback() {
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    --primary-color: #4a90e2;
+                    --bot-bubble: #d7d9e1;
+                    --grey: #888;
+                    --page-background: #6970d6;
+                    --white: #ffffff;
+                    --bot-text-color: #333;
+                    --user-text-color: #ffffff;
+                    --warning-color: #f7e985;
+                    --warning-text-color: #523003;
+                    --font-family: 'Inter', sans-serif;
+                    --font-size-base: 16px;
+                    --spacing-base: 1.25rem;
+                    --border-radius: 16px;
+                    --margin-base: 3rem;
+
+                    display: flex;
+                    height: 100%;
+                    width: 100%;
+                    background-color: var(--page-background);
+                    font-family: var(--font-family);
+                }
+
+                container {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    min-height: 100vh;
+                    max-height: 90vh;
+                }
+
+                header {
+                    background-color: var(--primary-color);
+                    color: var(--white);
+                    flex-shrink: 0;
+                    padding: var(--spacing-base);
+                    border-top-left-radius: var(--border-radius);
+                    border-top-right-radius: var(--border-radius);
+                    text-align: center;
+                    margin-top: var(--margin-base);
+                    margin-left: var(--margin-base);
+                    margin-right: var(--margin-base);
+                }
+
+                header h1 {
+                    font-size: 2rem;
+                    margin: 0;
+                    font-weight: 600;
+                }
+
+                header p {
+                    font-size: 0.8rem;
+                    margin: 0;
+                    margin-top: 0.5rem;
+                }
+
+                main {
+                    background-color: var(--white);
+                    display: flex;
+                    flex-direction: column;
+                    padding: var(--spacing-base);
+                    margin-left: var(--margin-base);
+                    margin-right: var(--margin-base);
+                    max-height: calc(100vh - 200px);
+                    overflow: hidden;
+                    height: 100%;
+                    flex: 1;
+                }
+
+                .message-history {
+                    flex: 1;
+                    overflow-y: auto;
+                    margin-bottom: var(--spacing-base);
+                    padding-right: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    scroll-behavior: smooth;
+                }
+
+                .message {
+                    max-width: 70%;
+                    padding: 8px 12px;
+                    border-radius: var(--border-radius);
+                    word-wrap: break-word;
+                }
+
+                    .message-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 4px;
+                    }
+
+                    .avatar {
+                        font-size: 1.2rem;
+                    }
+
+                    .timestamp {
+                        font-size: 0.75rem;
+                        color: var(--grey);
+                    }
+
+                    .message-content p {
+                        display: inline-block;
+                        margin: 0;
+                        padding: 8px 12px;
+                        font-size: 1rem;
+                        border-radius: var(--border-radius);
+                        word-wrap: break-word;
+                        max-width: 100%;
+                    }
+
+                    .bot-message {
+                        align-self: flex-start;
+                    }
+
+                    .user-message {
+                        align-self: flex-end;
+                    }
+
+                    .user-message .message-content p{
+                        background-color: var(--primary-color);
+                        color: var(--user-text-color);
+                        border-bottom-right-radius: 4px;
+                        border-bottom-left-radius: var(--border-radius);
+                        border-top-right-radius: var(--border-radius);
+                        border-top-left-radius: var(--border-radius);
+                    }
+
+                    .bot-message .message-content p{
+                        background-color: var(--bot-bubble);
+                        color: var(--bot-text-color);
+                        border-bottom-left-radius: 4px;
+                        border-bottom-right-radius: var(--border-radius);
+                        border-top-left-radius: var(--border-radius);
+                        border-top-right-radius: var(--border-radius);
+                    }
+
+                #chat-input-area {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: var(--spacing-base);
+                    margin-bottom: var(--spacing-base);
+                }
+
+                    #chat-input-area input {
+                        flex: 1;
+                        padding: 10px;
+                        font-size: 1rem;
+                        border: 1px solid var(--grey);
+                        border-radius: var(--border-radius);
+                    }
+
+                    #chat-input-area button {
+                        background-color: var(--bot-bubble);
+                        color: var(--white);
+                        border: none;
+                        padding: 10px 20px;
+                        font-size: 1rem;
+                        border-radius: var(--border-radius);
+                        cursor: pointer;
+                        transition: background-color 0.3s ease;
+                    }
+
+                    #chat-input-area button:hover {
+                        background-color: var(--primary-color);
+                    }
+
+                chat-footer {
+                    background-color: var(--warning-color);
+                    color: var(--warning-text-color);
+                    padding: var(--spacing-base);
+                    border-bottom-left-radius: var(--border-radius);
+                    border-bottom-right-radius: var(--border-radius);
+                    text-align: center;
+
+                    margin-left: var(--margin-base);
+                    margin-right: var(--margin-base);
+                    margin-bottom: var(--margin-base);
+                }
+            </style>
+
+            <container>
+                <header id="chat-header">
+                    <h1>Chat Assistant</h1>
+                    <p>Prototype: Web Component (PE)</p>
+                </header>
+
+                <main>
+                    <section id="chat-window" class="message-history">
+                    </section>
+                    <form id="chat-input-area">
+                        <input id="message-box" type="text" placeholder="Type your message...">
+                        <button id="send-button" type="button">Send</button>
+                    </form>
+                </main>
+
+                <chat-footer>
+                    <p>&#8505; This is a fully encapsulated web component using Shadow DOM.</p>
+                </chat-footer>
+            </container>
+        `;
+        document.body.style.margin = '0'; // Remove default margin
+        this.ren
+        this.setupEventListeners();
+    }
+
+    /**
+     * Sets up event listeners for sending messages via button click or Enter key.
+     */
+    setupEventListeners() {
+        const sendButton = this.shadowRoot.getElementById('send-button');
+        this.messageBox = this.shadowRoot.getElementById('message-box');
+        this.chatWindow = this.shadowRoot.getElementById('chat-window');
+
+        const sendHandler = () => {
+            const text = this.messageBox.value.trim();
+            if (!text) return;
+            this.dispatchEvent(new CustomEvent('messageSend', { detail: text}));
+            this.messageBox.value = '';
+            this.messageBox.focus();
+        }
+
+        sendButton.addEventListener('click', sendHandler);
+        this.messageBox.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendHandler();
+            }
+        });
+    }
+
+    renderMessage({id, text, sender, timestamp, edited}) {
+        const isUser = sender === 'user';
+        const avatar = isUser ? '👤' : '🤖'; // Use Profile if isUser is true, else use Robot
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+        msgDiv.dataset.id = id;
+        msgDiv.innerHTML = `
+            <div class="message-header">
+                <span class="avatar">${avatar}</span>
+                <span class="timestamp">${timeStamp}${edited ?  ' • edited' : ''}</span>
+            </div>
+            <div class="message-content">
+                <p>${text}</p>
+            </div>
+        `;
+
+        this.chatWindow.appendChild(msgDiv);
+        this.chatWindow.scrollTop = this.chatWindow.scrollHeight; // Scroll to bottom
+    }
+}
+
+customElements.define('chat-view', ChatView);
