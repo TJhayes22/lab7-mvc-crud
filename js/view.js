@@ -234,7 +234,7 @@ class ChatView extends HTMLElement {
         const sendHandler = () => {
             const text = this.messageBox.value.trim();
             if (!text) return;
-            this.dispatchEvent(new CustomEvent('messageSend', { detail: text}));
+            this.dispatchEvent(new CustomEvent('message-send', { detail: text}));
             this.messageBox.value = '';
             this.messageBox.focus();
         }
@@ -246,6 +246,8 @@ class ChatView extends HTMLElement {
                 sendHandler();
             }
         });
+
+        this.messageBox
     }
 
     renderMessage({id, text, sender, timestamp, edited}) {
