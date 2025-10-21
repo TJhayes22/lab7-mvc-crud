@@ -1,5 +1,5 @@
 
-class ChatView extends HTMLElement {
+export class ChatView extends HTMLElement {
     /**
      * Constructor: attaches a Shadow DOM to encapsulate styles and markup.
      */
@@ -219,7 +219,6 @@ class ChatView extends HTMLElement {
             </container>
         `;
         document.body.style.margin = '0'; // Remove default margin
-        this.ren
         this.setupEventListeners();
     }
 
@@ -246,13 +245,12 @@ class ChatView extends HTMLElement {
                 sendHandler();
             }
         });
-
-        this.messageBox
     }
 
     renderMessage({id, text, sender, timestamp, edited}) {
         const isUser = sender === 'user';
         const avatar = isUser ? '👤' : '🤖'; // Use Profile if isUser is true, else use Robot
+        const timeString = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
@@ -260,7 +258,7 @@ class ChatView extends HTMLElement {
         msgDiv.innerHTML = `
             <div class="message-header">
                 <span class="avatar">${avatar}</span>
-                <span class="timestamp">${timeStamp}${edited ?  ' • edited' : ''}</span>
+                <span class="timestamp">${timeString}${edited ?  ' • edited' : ''}</span>
             </div>
             <div class="message-content">
                 <p>${text}</p>
@@ -269,6 +267,11 @@ class ChatView extends HTMLElement {
 
         this.chatWindow.appendChild(msgDiv);
         this.chatWindow.scrollTop = this.chatWindow.scrollHeight; // Scroll to bottom
+    }
+
+    renderMessages(messages) {
+        this.chatWindow.innerHTML = '';
+        messages.forEach(msg => this.renderMessage(msg)); // Calls renderMessage for each message
     }
 }
 

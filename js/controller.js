@@ -1,8 +1,10 @@
+import { getBotResponse } from './eliza.js';
+
 /**
 	 * ChatController - Mediates between model and view
 	 * Responsibilities: Handle user actions, update model, refresh view
 	 */
-class ChatController {
+export class ChatController {
     constructor(model, listView) {
         this.model = model;
         this.listView = listView;
@@ -13,21 +15,30 @@ class ChatController {
 
     _setupEventListeners() {
         // Listen for messageSend event from form
-        document.addEventListener('message-send', (e) => {
-            this.sendMessage(e.detail.text);
+        this.listView.addEventListener('message-send', (e) => {
+            this.sendMessage(e.detail);
         });
     }
 
     _initialRender() {
         const messages = this.model.getAll();
-        this.listView.render(messages)
+        this.listView.renderMessages(messages);
     }
 
     sendMessage(text) {
         try {
-            const messages = this.model.add(text);
-            this.listView.renderMessage(messages); // Update later
-            console.log('Message added: ', text)
+            // Add user message
+            const newMessage = this.model.add(text, 'user');
+            this.listView.renderMessage(newMessage);
+
+            // Generate bot response
+            const botText = getBotResponse(text);
+
+            // Add the bot message
+            const botMessage = this.model.add(botText, 'bot');
+            this.listView.renderMessage(botMessage);
+
+            console.log('Messages added: ', text, botText);
         } catch (error) {
             alert(`Error: ${error.message}`);
         }
