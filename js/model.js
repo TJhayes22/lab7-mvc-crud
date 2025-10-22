@@ -47,29 +47,30 @@ export class ChatModel {
      * @returns {Array} Updated messages array
      */
     edit(id, newText) {
-    if (!newText || newText.trim().length === 0) {
-        throw new Error('Message text cannot be empty');
-    }
-
-    const messages = this.getAll();
-    const updated = messages.map(msg => {
-        if (msg.id === id) {
-            return {
-                ...msg, 
-                text: newText.trim(),
-                edited: true
-            };
+        if (!newText || newText.trim().length === 0) {
+            throw new Error('Message text cannot be empty');
         }
-        return msg;
-    });
 
-    this._save(updated);
-    return updated;
+        const messages = this.getAll();
+        const updated = messages.map(msg => {
+            if (msg.id === id) {
+                return {
+                    ...msg, 
+                    text: newText.trim(),
+                    edited: true
+                };
+            }
+            return msg;
+        });
+
+        this._save(updated);
+        return updated;
     }
+
     /**
      * Delete a message by ID
 	 * @param {string} id - Message ID
-	 * @returns {Array} Updated notes array
+	 * @returns {Array} Updated messages array
 	 */
     delete(id) {
         const messages = this.getAll();

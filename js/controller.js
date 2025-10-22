@@ -18,6 +18,12 @@ export class ChatController {
         this.listView.addEventListener('message-send', (e) => {
             this.sendMessage(e.detail);
         });
+
+        // Listen for edit button clicked, then call editMessage()
+        this.listView.addEventListener('message-edit', (e) => this.editMessage(e.detail.id));
+
+        // Listen for delete button clicked, then call deleteMessage()
+        this.listView.addEventListener('message-delete', (e) => this.deleteMessage(e.detail.id));
     }
 
     _initialRender() {
@@ -43,5 +49,27 @@ export class ChatController {
             alert(`Error: ${error.message}`);
         }
     }
-    /* Add more functions for edit and delete */
+    
+    editMessage(id) {
+        const messages = this.model.getAll();
+        const message = messages.find(msg => msg.id === id);
+        if (!message) return;
+
+        const newText = prompt('Edit your message: ', message.text);
+        if (newText && newText.trim() !== message.text) {
+            const updatedMessages = this.model.edit(id, newText);
+            this.listView.renderMessages(updatedMessages);
+        }
+    }
+
+    deleteMessage(id) {
+        const confirmed = confirm("Are you sure you want to delete this message?");
+        if (!confirmed) return; // If user says no, don't go through with deletion
+        
+        // Remove message from the model messages array
+        const updatedMessages = this.model.delete(id);
+
+        // Re-renders that chat view (deleted message is gone)
+        this.listView.renderMessages(updatedMessages);
+    }
 }

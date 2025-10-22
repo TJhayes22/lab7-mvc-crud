@@ -118,7 +118,7 @@ export class ChatView extends HTMLElement {
                         color: var(--grey);
                     }
 
-                    .message-content p {
+                    .message-content p{
                         display: inline-block;
                         margin: 0;
                         padding: 8px 12px;
@@ -136,7 +136,7 @@ export class ChatView extends HTMLElement {
                         align-self: flex-end;
                     }
 
-                    .user-message .message-content p{
+                    .user-message .message-content {
                         background-color: var(--primary-color);
                         color: var(--user-text-color);
                         border-bottom-right-radius: 4px;
@@ -145,13 +145,47 @@ export class ChatView extends HTMLElement {
                         border-top-left-radius: var(--border-radius);
                     }
 
-                    .bot-message .message-content p{
+                    .bot-message .message-content {
                         background-color: var(--bot-bubble);
                         color: var(--bot-text-color);
                         border-bottom-left-radius: 4px;
                         border-bottom-right-radius: var(--border-radius);
                         border-top-left-radius: var(--border-radius);
                         border-top-right-radius: var(--border-radius);
+                    }
+
+                    .message-content {
+                        position: relative;
+                        transition: all 0.3s ease;
+                    }
+
+                    .message-actions {
+                        opacity: 0;
+                        max-height: 0;
+                        overflow: hidden;
+                        transition: all 0.3s ease;
+                    }
+
+                    .user-message:hover .message-actions {
+                        opacity: 1;
+                        max-height: 50px;
+                    }
+
+                    .message-actions button {
+                        border: none;
+                        cursor: pointer;
+                        font-size: 0.8rem;
+                        padding: 2px 4px;
+                        transition: color 0.2s ease;
+                        border-radius: 10px;
+                    }
+
+                    .edit-btn {
+                        color: var(--primary-color);
+                    }
+                    
+                    .delete-btn {
+                        color: red;
                     }
 
                 #chat-input-area {
@@ -245,6 +279,19 @@ export class ChatView extends HTMLElement {
                 sendHandler();
             }
         });
+
+        this.chatWindow.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-btn')) {
+                console.log('Edit button clicked'); // Testing delete late
+                const id = e.target.dataset.id;
+                this.dispatchEvent(new CustomEvent('message-edit', {detail: { id }}));
+            }
+            if (e.target.classList.contains('delete-btn')) {
+                console.log('Delete button clicked'); // Testing delete later
+                const id = e.target.dataset.id;
+                this.dispatchEvent(new CustomEvent('message-delete', {detail: { id }}));
+            }
+        });
     }
 
     renderMessage({id, text, sender, timestamp, edited}) {
@@ -262,11 +309,20 @@ export class ChatView extends HTMLElement {
             </div>
             <div class="message-content">
                 <p>${text}</p>
+                ${isUser ? `
+                    <div class = "message-actions">
+                        <button class="edit-btn" data-id="${id}"> Edit</button>
+                        <button class="delete-btn" data-id="${id}"> Delete</button>
+                    </div>
+                ` : ''}
             </div>
         `;
 
         this.chatWindow.appendChild(msgDiv);
-        this.chatWindow.scrollTop = this.chatWindow.scrollHeight; // Scroll to bottom
+        this.chatWindow.scrollTo({
+            top: this.chatWindow.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 
     renderMessages(messages) {
