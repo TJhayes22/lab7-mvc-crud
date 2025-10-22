@@ -24,6 +24,12 @@ export class ChatController {
 
         // Listen for delete button clicked, then call deleteMessage()
         this.listView.addEventListener('message-delete', (e) => this.deleteMessage(e.detail.id));
+
+        this.listView.addEventListener('chat-clear', () => this.clearChat());
+
+        this.listView.addEventListener('chat-import', () => this.importChat());
+
+        this.listView.addEventListener('chat-export', () => this.exportChat());
     }
 
     _initialRender() {
@@ -65,11 +71,28 @@ export class ChatController {
     deleteMessage(id) {
         const confirmed = confirm("Are you sure you want to delete this message?");
         if (!confirmed) return; // If user says no, don't go through with deletion
-        
+
         // Remove message from the model messages array
         const updatedMessages = this.model.delete(id);
 
         // Re-renders that chat view (deleted message is gone)
         this.listView.renderMessages(updatedMessages);
+    }
+
+    clearChat() {
+        const confirmed = confirm("Are you sure you want to clear the chat?");
+        if (!confirmed) return;
+
+        const updatedMessages = this.model.clear();
+
+        this.listView.renderMessages(updatedMessages);
+    }
+
+    importChat() {
+        return;
+    }
+
+    exportChat() {
+        return;
     }
 }

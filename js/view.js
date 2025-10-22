@@ -248,7 +248,9 @@ export class ChatView extends HTMLElement {
                 </main>
 
                 <chat-footer>
-                    <p>&#8505; This is a fully encapsulated web component using Shadow DOM.</p>
+                    <button class="clear-button" type="button">🗑️Clear All</button>
+                    <button class="import-button" type="button">📥Import Chat</button>
+                    <button class="export-button" type="button">📤Export Chat</button>
                 </chat-footer>
             </container>
         `;
@@ -263,6 +265,7 @@ export class ChatView extends HTMLElement {
         const sendButton = this.shadowRoot.getElementById('send-button');
         this.messageBox = this.shadowRoot.getElementById('message-box');
         this.chatWindow = this.shadowRoot.getElementById('chat-window');
+        const footer = this.shadowRoot.querySelector('chat-footer');
 
         const sendHandler = () => {
             const text = this.messageBox.value.trim();
@@ -290,6 +293,21 @@ export class ChatView extends HTMLElement {
                 console.log('Delete button clicked'); // Testing delete later
                 const id = e.target.dataset.id;
                 this.dispatchEvent(new CustomEvent('message-delete', {detail: { id }}));
+            }
+        });
+
+        footer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('clear-button')) {
+                console.log('Clear button clicked'); // Testing, delete later
+                this.dispatchEvent(new CustomEvent('chat-clear'));
+            }
+            if (e.target.classList.contains('import-button')) {
+                console.log('Clear button clicked'); // Testing, delete later
+                this.dispatchEvent(new CustomEvent('chat-import'));
+            }
+            if (e.target.classList.contains('export-button')) {
+                console.log('Clear button clicked'); // Testing, delete later
+                this.dispatchEvent(new CustomEvent('chat-export'));
             }
         });
     }
