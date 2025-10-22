@@ -219,7 +219,7 @@ export class ChatView extends HTMLElement {
                     }
 
                 chat-footer {
-                    background-color: var(--warning-color);
+                    background-color: var(--bot-bubble);
                     color: var(--warning-text-color);
                     padding: var(--spacing-base);
                     border-bottom-left-radius: var(--border-radius);
@@ -230,12 +230,49 @@ export class ChatView extends HTMLElement {
                     margin-right: var(--margin-base);
                     margin-bottom: var(--margin-base);
                 }
+
+                chat-footer button {
+                    font-size: 1rem;
+                    border-radius: 10px;
+                    padding: 4px;
+                    border: none;
+                    margin: 4px;
+                }
+
+                .clear-button {
+                    transition: background-color 0.6s ease;
+                }
+                .clear-button:hover {
+                    background-color: red;
+                }
+
+                .import-button {
+                    transition: background-color 0.6s ease;
+                }
+                .import-button:hover {
+                    background-color: var(--primary-color);
+                }
+
+                .export-button {
+                    transition: background-color 0.6s ease;
+                }
+                .export-button:hover {
+                    background-color: var(--primary-color);
+                }
+
+                #message-count {
+                    font-size: 0.9rem;
+                    color: var(--white);
+                    background-color: var(--primary-color);
+                    padding: 6px;
+                }
+
             </style>
 
             <container>
                 <header id="chat-header">
-                    <h1>Chat Assistant</h1>
-                    <p>Prototype: Web Component (PE)</p>
+                    <h1>Chat Application</h1>
+                    <p>MVC Architecture with CRUD Operations</p>
                 </header>
 
                 <main>
@@ -251,6 +288,7 @@ export class ChatView extends HTMLElement {
                     <button class="clear-button" type="button">🗑️Clear All</button>
                     <button class="import-button" type="button">📥Import Chat</button>
                     <button class="export-button" type="button">📤Export Chat</button>
+                    <span id="message-count">Messages: 0</span>
                 </chat-footer>
             </container>
         `;

@@ -35,6 +35,7 @@ export class ChatController {
     _initialRender() {
         const messages = this.model.getAll();
         this.listView.renderMessages(messages);
+        this.updateMessageCount();
     }
 
     sendMessage(text) {
@@ -54,9 +55,11 @@ export class ChatController {
         } catch (error) {
             alert(`Error: ${error.message}`);
         }
+        this.updateMessageCount();
     }
     
     editMessage(id) {
+        /*
         const messages = this.model.getAll();
         const message = messages.find(msg => msg.id === id);
         if (!message) return;
@@ -66,17 +69,49 @@ export class ChatController {
             const updatedMessages = this.model.edit(id, newText);
             this.listView.renderMessages(updatedMessages);
         }
-    }
+        this.updateMessageCount();
+        */
+        const messages = this.model.getAll();
+        const message = messages.find(msg => msg.id === id);
+        if (!message) return;
 
-    deleteMessage(id) {
-        const confirmed = confirm("Are you sure you want to delete this message?");
-        if (!confirmed) return; // If user says no, don't go through with deletion
+        // Ask the user for a new version of their message
+        const newText = prompt('Edit your message:', message.text);
 
-        // Remove message from the model messages array
-        const updatedMessages = this.model.delete(id);
+        // Stop if text is unchanged or empty
+        if (!newText || newText.trim() === message.text) return;
 
-        // Re-renders that chat view (deleted message is gone)
+        // --- Update the user's message ---
+        this.model.edit(id, newText);
+
+        // --- Find the bot message that follows ---
+        const userIndex = messages.findIndex(msg => msg.id === id);
+        const nextMessage = messages[userIndex + 1];
+
+        // --- If there’s a bot reply, update it too ---
+        if (nextMessage && nextMessage.sender === 'bot') {
+            const newBotText = getBotResponse(newText);
+            this.model.edit(nextMessage.id, newBotText);
+        }
+
+        // --- Refresh the view ---
+        const updatedMessages = this.model.getAll();
         this.listView.renderMessages(updatedMessages);
+
+        // --- Update the counter ---
+        this.updateMessageCount();
+        }
+
+        deleteMessage(id) {
+            const confirmed = confirm("Are you sure you want to delete this message?");
+            if (!confirmed) return; // If user says no, don't go through with deletion
+
+            // Remove message from the model messages array
+            const updatedMessages = this.model.delete(id);
+
+            // Re-renders that chat view (deleted message is gone)
+            this.listView.renderMessages(updatedMessages);
+            this.updateMessageCount();
     }
 
     clearChat() {
@@ -86,13 +121,56 @@ export class ChatController {
         const updatedMessages = this.model.clear();
 
         this.listView.renderMessages(updatedMessages);
+        this.updateMessageCount();
     }
 
     importChat() {
-        return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+
+        input.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const text = await file.text();
+            try {
+                const messages = JSON.parse(text);
+                if (Array.isArray(messages)) {
+                    this.model._save(messages);
+                    this.listView.renderMessages(messages);
+                    this.updateMessageCount();
+                    alert('Chat history imported successfully!');
+                } else {
+                    throw new Error('Invalid JSON format');
+                }
+            } catch (error) {
+                alert('Error importing chat: ' + error.message);
+            }
+        });
+
+        input.click();
     }
 
     exportChat() {
-        return;
+        const messages = this.model.getAll();
+        const blob = new Blob([JSON.stringify(messages, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'chat-history.json';
+        a.click();
+
+        URL.revokeObjectURL(url);
+        this.updateMessageCount();
+    }
+
+    updateMessageCount() {
+        const messages = this.model.getAll();
+        const countElement = this.listView.shadowRoot.getElementById('message-count');
+        if (countElement) {
+            countElement.textContent = `Messages: ${messages.length}`;
+        }
     }
 }
