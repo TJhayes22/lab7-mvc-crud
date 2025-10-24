@@ -80,7 +80,7 @@ export class ChatView extends HTMLElement {
                     margin-right: var(--margin-base);
                     max-height: calc(100vh - 200px);
                     overflow: hidden;
-                    height: 100%;
+                    height: 100dvh;
                     flex: 1;
                 }
 
@@ -93,6 +93,7 @@ export class ChatView extends HTMLElement {
                     flex-direction: column;
                     gap: 10px;
                     scroll-behavior: smooth;
+                    min-height: 60px;
                 }
 
                 .message {
@@ -134,6 +135,7 @@ export class ChatView extends HTMLElement {
 
                     .user-message {
                         align-self: flex-end;
+                        width: fit-content;
                     }
 
                     .user-message .message-content {
@@ -218,6 +220,23 @@ export class ChatView extends HTMLElement {
                         background-color: var(--primary-color);
                     }
 
+                    @media (max-width: 480px) {
+                        #chat-input-area {
+                            gap: 6px;
+                            padding: 0 4px;
+                        }
+
+                        #chat-input-area input {
+                            font-size: 0.9rem;
+                            padding: 8px;
+                        }
+
+                        #chat-input-area button {
+                            padding: 8px 12px;
+                            font-size: 0.9rem;
+                        }
+                    }
+
                 chat-footer {
                     background-color: var(--bot-bubble);
                     color: var(--warning-text-color);
@@ -299,57 +318,64 @@ export class ChatView extends HTMLElement {
     /**
      * Sets up event listeners for sending messages via button click or Enter key.
      */
-    setupEventListeners() {
+    setupEventListeners() { 
         const sendButton = this.shadowRoot.getElementById('send-button');
         this.messageBox = this.shadowRoot.getElementById('message-box');
         this.chatWindow = this.shadowRoot.getElementById('chat-window');
         const footer = this.shadowRoot.querySelector('chat-footer');
 
-        const sendHandler = () => {
+        // Store handlers as properties so they can be removed later
+        this._sendHandler = () => {
             const text = this.messageBox.value.trim();
             if (!text) return;
-            this.dispatchEvent(new CustomEvent('message-send', { detail: text}));
+            this.dispatchEvent(new CustomEvent('message-send', { detail: text }));
             this.messageBox.value = '';
             this.messageBox.focus();
-        }
+        };
 
-        sendButton.addEventListener('click', sendHandler);
-        this.messageBox.addEventListener('keypress', (event) => {
+        this._keypressHandler = (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                sendHandler();
+                this._sendHandler();
             }
-        });
+        };
 
-        this.chatWindow.addEventListener('click', (e) => {
+        this._chatClickHandler = (e) => {
             if (e.target.classList.contains('edit-btn')) {
-                console.log('Edit button clicked'); // Testing delete late
                 const id = e.target.dataset.id;
-                this.dispatchEvent(new CustomEvent('message-edit', {detail: { id }}));
-            }
-            if (e.target.classList.contains('delete-btn')) {
-                console.log('Delete button clicked'); // Testing delete later
+                this.dispatchEvent(new CustomEvent('message-edit', { detail: { id } }));
+            } else if (e.target.classList.contains('delete-btn')) {
                 const id = e.target.dataset.id;
-                this.dispatchEvent(new CustomEvent('message-delete', {detail: { id }}));
+                this.dispatchEvent(new CustomEvent('message-delete', { detail: { id } }));
             }
-        });
+        };
 
-        footer.addEventListener('click', (e) => {
+        this._footerClickHandler = (e) => {
             if (e.target.classList.contains('clear-button')) {
-                console.log('Clear button clicked'); // Testing, delete later
                 this.dispatchEvent(new CustomEvent('chat-clear'));
-            }
-            if (e.target.classList.contains('import-button')) {
-                console.log('Clear button clicked'); // Testing, delete later
+            } else if (e.target.classList.contains('import-button')) {
                 this.dispatchEvent(new CustomEvent('chat-import'));
-            }
-            if (e.target.classList.contains('export-button')) {
-                console.log('Clear button clicked'); // Testing, delete later
+            } else if (e.target.classList.contains('export-button')) {
                 this.dispatchEvent(new CustomEvent('chat-export'));
             }
-        });
+        };
+
+        // Attach all listeners
+        sendButton.addEventListener('click', this._sendHandler);
+        this.messageBox.addEventListener('keypress', this._keypressHandler);
+        this.chatWindow.addEventListener('click', this._chatClickHandler);
+        footer.addEventListener('click', this._footerClickHandler);
     }
 
+    /**
+    * Renders a single chat message in the chat window.
+    * @param {Object} message - The message object to render.
+        * @param {string} message.id - Unique message ID.
+        * @param {string} message.text - Message text content.
+        * @param {string} message.sender - Either 'user' or 'bot'.
+        * @param {number} message.timestamp - Time the message was created (ms).
+        * @param {boolean} [message.edited=false] - Whether the message was edited.
+    */
     renderMessage({id, text, sender, timestamp, edited}) {
         const isUser = sender === 'user';
         const avatar = isUser ? '👤' : '🤖'; // Use Profile if isUser is true, else use Robot
@@ -381,10 +407,28 @@ export class ChatView extends HTMLElement {
         });
     }
 
+    /**
+     * Renders all messages in the chat window.
+     * @param {Array<Object>} messages - List of message objects to display.
+     */
     renderMessages(messages) {
         this.chatWindow.innerHTML = '';
         messages.forEach(msg => this.renderMessage(msg)); // Calls renderMessage for each message
     }
+
+    /**
+     * Cleans up event listeners when element is removed from DOM (prevents memory leaks)
+     */
+    disconnectedCallback() {
+        const sendButton = this.shadowRoot.getElementById('send-button');
+        const footer = this.shadowRoot.querySelector('chat-footer');
+
+        if (sendButton) sendButton.removeEventListener('click', this._sendHandler);
+        if (this.messageBox) this.messageBox.removeEventListener('keypress', this._keypressHandler);
+        if (this.chatWindow) this.chatWindow.removeEventListener('click', this._chatClickHandler);
+        if (footer) footer.removeEventListener('click', this._footerClickHandler);
+    }
 }
 
+// Registers the ChatView custom element with the browser
 customElements.define('chat-view', ChatView);
