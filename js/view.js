@@ -365,6 +365,8 @@ export class ChatView extends HTMLElement {
         this.messageBox.addEventListener('keypress', this._keypressHandler);
         this.chatWindow.addEventListener('click', this._chatClickHandler);
         footer.addEventListener('click', this._footerClickHandler);
+
+        this.messageBox.focus();
     }
 
     /**
